@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+    nginx:
+        image: nginx:latest
+        restart: always
+        container_name: nginx
+        ports:
+            - "80:80"
+        networks:
+            - backend
+        volumes:
+            - ~/dev/api:/var/www/html
+            - ./nginx/conf:/etc/nginx/conf.d
+            - ./nginx/logs:/var/log/nginx/
+        depends_on:
+            - api
+
+    api:
+        build: ./php
+        restart: always
+        container_name: api
+        networks:
+            - backend
+            - db
+        volumes:
+            - ~/dev/api:/var/www/html
+        depends_on:
+            - database
+
+    database:
+        image: mariadb
+        restart: always
+        container_name: database
+        expose:
+            - 3306
+        ports:
+            - "3306:3306"
+        networks:
+            - db
+        environment:
+            - MYSQL_ROOT_PASSWORD=api123
+            - MYSQL_USER=api
+            - MYSQL_PASSWORD=api123
+            - MYSQL_DATABASE=api
+        volumes:
+            - ./runtime/db:/var/lib/mysql
+            - ./backup:/backup
+
+networks:
+    backend:
+    db:
